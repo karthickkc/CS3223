@@ -68,6 +68,13 @@ public class Lexer {
    public boolean matchId() {
       return  tok.ttype==StreamTokenizer.TT_WORD && !keywords.contains(tok.sval);
    }
+
+   public boolean matchOpr() {
+      int t = tok.ttype;
+
+      // The first character of every supported operator
+      return t == '=' || t == '<' || t == '>' || t == '!';
+   }
    
 //Methods to "eat" the current token
    
@@ -137,6 +144,44 @@ public class Lexer {
       nextToken();
       return s;
    }
+
+   public String eatOpr() {
+      if (!matchOpr())
+         throw new BadSyntaxException();
+
+      char first = (char) tok.ttype;
+      nextToken();
+
+      // Single-character operator
+      if (first == '=')
+         return "=";
+
+      // Check whether this is a two-character operator
+      if (tok.ttype == '=') {
+         nextToken();
+
+         if (first == '<')
+            return "<=";
+         if (first == '>')
+            return ">=";
+         if (first == '!')
+            return "!=";
+      }
+
+      if (first == '<') {
+         if (tok.ttype == '>') {
+            nextToken();
+            return "<>";
+         }
+         return "<";
+      }
+
+      if (first == '>')
+         return ">";
+
+      // A standalone '!' is not valid SQL syntax
+      throw new BadSyntaxException();
+}
    
    private void nextToken() {
       try {

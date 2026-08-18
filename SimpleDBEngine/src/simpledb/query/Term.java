@@ -10,6 +10,7 @@ import simpledb.record.*;
  */
 public class Term {
    private Expression lhs, rhs;
+   private String op;
    
    /**
     * Create a new term that compares two expressions
@@ -19,6 +20,12 @@ public class Term {
     */
    public Term(Expression lhs, Expression rhs) {
       this.lhs = lhs;
+      this.rhs = rhs;
+   }
+
+   public Term(Expression lhs, String op, Expression rhs) {
+      this.lhs = lhs;
+      this.op = op;
       this.rhs = rhs;
    }
    
@@ -32,7 +39,25 @@ public class Term {
    public boolean isSatisfied(Scan s) {
       Constant lhsval = lhs.evaluate(s);
       Constant rhsval = rhs.evaluate(s);
-      return rhsval.equals(lhsval);
+      int cmp = lhsval.compareTo(rhsval);
+
+      switch (op) {
+         case "=":
+            return cmp == 0;
+         case "<":
+            return cmp < 0;
+         case "<=":
+            return cmp <= 0;
+         case ">":
+            return cmp > 0;
+         case ">=":
+            return cmp >= 0;
+         case "!=":
+         case "<>":
+            return cmp != 0;
+         default:
+            throw new IllegalArgumentException("Unknown operator: " + op);
+      }
    }
    
    /**
@@ -75,6 +100,9 @@ public class Term {
     * @return either the constant or null
     */
    public Constant equatesWithConstant(String fldname) {
+      if (!op.equals("="))
+      return null;
+   
       if (lhs.isFieldName() &&
           lhs.asFieldName().equals(fldname) &&
           !rhs.isFieldName())
@@ -96,6 +124,9 @@ public class Term {
     * @return either the name of the other field, or null
     */
    public String equatesWithField(String fldname) {
+      if (!op.equals("="))
+      return null;
+
       if (lhs.isFieldName() &&
           lhs.asFieldName().equals(fldname) &&
           rhs.isFieldName())
@@ -119,6 +150,6 @@ public class Term {
    }
    
    public String toString() {
-      return lhs.toString() + "=" + rhs.toString();
+      return lhs.toString() + op + rhs.toString();
    }
 }
