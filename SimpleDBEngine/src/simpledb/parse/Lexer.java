@@ -69,6 +69,13 @@ public class Lexer {
       return  tok.ttype==StreamTokenizer.TT_WORD && !keywords.contains(tok.sval);
    }
 
+   /**
+    * Returns true if the current token is the beginning
+    * of a comparison operator.
+    * The supported operators are =, <, <=, >, >=, !=, and <>.
+    *
+    * @return true if the current token begins a comparison operator
+    */
    public boolean matchOpr() {
       int t = tok.ttype;
 
@@ -145,6 +152,14 @@ public class Lexer {
       return s;
    }
 
+   /**
+    * Throws an exception if the current token is not
+    * a valid comparison operator.
+    * Otherwise, returns the operator string and moves
+    * to the next token.
+    *
+    * @return the comparison operator string
+    */
    public String eatOpr() {
       if (!matchOpr())
          throw new BadSyntaxException();
