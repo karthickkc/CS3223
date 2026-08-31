@@ -115,7 +115,7 @@ public class IndexUpdatePlanner implements UpdatePlanner {
    }
    
    public int executeCreateIndex(CreateIndexData data, Transaction tx) {
-      mdm.createIndex(data.indexName(), data.tableName(), data.fieldName(), tx);
+      mdm.createIndex(data.indexName(), data.tableName(), data.fieldName(), data.indexType(), tx);
       return 0;
    }
 }
