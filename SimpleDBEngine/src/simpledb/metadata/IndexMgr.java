@@ -12,10 +12,13 @@ import simpledb.record.*;
  * @author Edward Sciore
  */
 class IndexMgr {
+   // The max characters an index type ("hash" or "btree") can have.
+   public static final int MAX_TYPE_NAME = 8;
+
    private Layout layout;
    private TableMgr tblmgr;
    private StatMgr statmgr;
-   
+
    /**
     * Create the index manager.
     * This constructor is called during system startup.
@@ -29,13 +32,27 @@ class IndexMgr {
          sch.addStringField("indexname", MAX_NAME);
          sch.addStringField("tablename", MAX_NAME);
          sch.addStringField("fieldname", MAX_NAME);
+         sch.addStringField("indextype", MAX_TYPE_NAME);
          tblmgr.createTable("idxcat", sch, tx);
       }
       this.tblmgr = tblmgr;
       this.statmgr = statmgr;
       layout = tblmgr.getLayout("idxcat", tx);
    }
-   
+
+   /**
+    * Create a hash index for the specified field.
+    * Equivalent to calling {@link #createIndex(String, String, String, String, Transaction)}
+    * with an index type of "hash".
+    * @param idxname the name of the index
+    * @param tblname the name of the indexed table
+    * @param fldname the name of the indexed field
+    * @param tx the calling transaction
+    */
+   public void createIndex(String idxname, String tblname, String fldname, Transaction tx) {
+      createIndex(idxname, tblname, fldname, "hash", tx);
+   }
+
    /**
     * Create an index of the specified type for the specified field.
     * A unique ID is assigned to this index, and its information
@@ -43,17 +60,19 @@ class IndexMgr {
     * @param idxname the name of the index
     * @param tblname the name of the indexed table
     * @param fldname the name of the indexed field
+    * @param idxtype the type of index ("hash" or "btree")
     * @param tx the calling transaction
     */
-   public void createIndex(String idxname, String tblname, String fldname, Transaction tx) {
+   public void createIndex(String idxname, String tblname, String fldname, String idxtype, Transaction tx) {
       TableScan ts = new TableScan(tx, "idxcat", layout);
       ts.insert();
       ts.setString("indexname", idxname);
       ts.setString("tablename", tblname);
       ts.setString("fieldname", fldname);
+      ts.setString("indextype", idxtype);
       ts.close();
    }
-   
+
    /**
     * Return a map containing the index info for all indexes
     * on the specified table.
@@ -68,9 +87,10 @@ class IndexMgr {
          if (ts.getString("tablename").equals(tblname)) {
          String idxname = ts.getString("indexname");
          String fldname = ts.getString("fieldname");
+         String idxtype = ts.getString("indextype");
          Layout tblLayout = tblmgr.getLayout(tblname, tx);
          StatInfo tblsi = statmgr.getStatInfo(tblname, tblLayout, tx);
-         IndexInfo ii = new IndexInfo(idxname, fldname, tblLayout.schema(), tx, tblsi);
+         IndexInfo ii = new IndexInfo(idxname, fldname, tblLayout.schema(), tx, tblsi, idxtype);
          result.put(fldname, ii);
       }
       ts.close();
