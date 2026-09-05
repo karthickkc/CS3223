@@ -21,6 +21,20 @@ public class SortPlan implements Plan {
     * @param p the plan for the underlying query
     * @param sortfields the fields to sort by
     * @param tx the calling transaction
+    * @param sortDirections the sort directions
+    */
+   public SortPlan(Transaction tx, Plan p, List<String> sortfields, List<Boolean> sortDirections) {
+      this.tx = tx;
+      this.p = p;
+      sch = p.schema();
+      comp = new RecordComparator(sortfields, sortDirections);
+   }
+
+   /**
+    * Create a sort plan for the specified query.
+    * @param p the plan for the underlying query
+    * @param sortfields the fields to sort by
+    * @param tx the calling transaction
     */
    public SortPlan(Transaction tx, Plan p, List<String> sortfields) {
       this.tx = tx;
@@ -38,6 +52,12 @@ public class SortPlan implements Plan {
    public Scan open() {
       Scan src = p.open();
       List<TempTable> runs = splitIntoRuns(src);
+      // SortScan expects at least one run.  If the underlying query
+      // produces no records, return the empty source scan instead.
+      if (runs.isEmpty()) {
+         src.beforeFirst();
+         return src;
+      }
       src.close();
       while (runs.size() > 2)
          runs = doAMergeIteration(runs);
