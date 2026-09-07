@@ -70,7 +70,14 @@ public class Parser {
 			lex.eatKeyword("where");
 			pred = predicate();
 		}
-		return new QueryData(fields, tables, pred);
+		List<String> sortFields = new ArrayList<String>();
+    	List<Boolean> sortDirections = new ArrayList<Boolean>();
+		if (lex.matchKeyword("order")) {
+        	lex.eatKeyword("order");
+        	lex.eatKeyword("by");
+        	orderByList(sortFields, sortDirections);
+    	}
+		return new QueryData(fields, tables, pred, sortFields, sortDirections);
 	}
 
 	private List<String> selectList() {
@@ -91,6 +98,28 @@ public class Parser {
 			L.addAll(tableList());
 		}
 		return L;
+	}
+
+	private void orderByList(List<String> sortFields, List<Boolean> sortDirections) {
+    	String fldname = field();
+    	sortFields.add(fldname);
+
+    	boolean ascending = true;
+
+    	if (lex.matchKeyword("asc")) {
+        	lex.eatKeyword("asc");
+    	}
+    	else if (lex.matchKeyword("desc")) {
+        	lex.eatKeyword("desc");
+        	ascending = false;
+    	}
+
+    	sortDirections.add(ascending);
+
+    	if (lex.matchDelim(',')) {
+        	lex.eatDelim(',');
+        	orderByList(sortFields, sortDirections);
+    	}
 	}
 
 // Methods for parsing the various update commands

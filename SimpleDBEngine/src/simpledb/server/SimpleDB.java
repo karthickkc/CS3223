@@ -4,10 +4,11 @@ import java.io.File;
 
 import simpledb.buffer.BufferMgr;
 import simpledb.file.FileMgr;
-import simpledb.index.planner.IndexUpdatePlanner;
 import simpledb.log.LogMgr;
 import simpledb.metadata.MetadataMgr;
 import simpledb.opt.HeuristicQueryPlanner;
+import simpledb.plan.BasicQueryPlanner;
+import simpledb.plan.BasicUpdatePlanner;
 import simpledb.plan.Planner;
 import simpledb.plan.QueryPlanner;
 import simpledb.plan.UpdatePlanner;
@@ -60,10 +61,10 @@ public class SimpleDB {
 			tx.recover();
 		}
 		mdm = new MetadataMgr(isnew, tx);
-//      QueryPlanner qp = new BasicQueryPlanner(mdm);
-//      UpdatePlanner up = new BasicUpdatePlanner(mdm);
-		QueryPlanner qp = new HeuristicQueryPlanner(mdm);
-		UpdatePlanner up = new IndexUpdatePlanner(mdm);
+        QueryPlanner qp = new BasicQueryPlanner(mdm);
+        UpdatePlanner up = new BasicUpdatePlanner(mdm);
+		// QueryPlanner qp = new HeuristicQueryPlanner(mdm);
+		// UpdatePlanner up = new IndexUpdatePlanner(mdm);
 		planner = new Planner(qp, up);
 		tx.commit();
 	}
