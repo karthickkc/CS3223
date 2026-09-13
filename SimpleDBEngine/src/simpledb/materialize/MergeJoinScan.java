@@ -62,11 +62,11 @@ public class MergeJoinScan implements Scan {
     */
    public boolean next() {
       boolean hasmore2 = s2.next();
-      if (hasmore2 && s2.getVal(fldname2).equals(joinval))
+      if (hasmore2 && joinval != null && s2.getVal(fldname2).equals(joinval))
          return true;
       
       boolean hasmore1 = s1.next();
-      if (hasmore1 && s1.getVal(fldname1).equals(joinval)) {
+      if (hasmore1 && joinval != null && s1.getVal(fldname1).equals(joinval)) {
          s2.restorePosition();
          return true;
       }
