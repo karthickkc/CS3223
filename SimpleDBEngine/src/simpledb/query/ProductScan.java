@@ -7,6 +7,7 @@ package simpledb.query;
  */
 public class ProductScan implements Scan {
    private Scan s1, s2;
+   private Predicate joinpred;
 
    /**
     * Create a product scan having the two underlying scans.
@@ -16,6 +17,21 @@ public class ProductScan implements Scan {
    public ProductScan(Scan s1, Scan s2) {
       this.s1 = s1;
       this.s2 = s2;
+      this.joinpred = null;
+      beforeFirst();
+   }
+
+   /**
+    * Create a nested-loops join scan having the two underlying scans
+    * and a join predicate to evaluate inside next().
+    * @param s1 the LHS scan
+    * @param s2 the RHS scan
+    * @param joinpred the join predicate
+    */
+   public ProductScan(Scan s1, Scan s2, Predicate joinpred) {
+      this.s1 = s1;
+      this.s2 = s2;
+      this.joinpred = joinpred;
       beforeFirst();
    }
 
@@ -41,11 +57,25 @@ public class ProductScan implements Scan {
     * @see simpledb.query.Scan#next()
     */
    public boolean next() {
-      if (s2.next())
-         return true;
-      else {
-         s2.beforeFirst();
-         return s2.next() && s1.next();
+      if (joinpred == null) {
+         if (s2.next())
+            return true;
+         else {
+            s2.beforeFirst();
+            return s2.next() && s1.next();
+         }
+      }
+
+      while (true) {
+         if (s2.next()) {
+            if (joinpred.isSatisfied(this))
+               return true;
+         }
+         else {
+            s2.beforeFirst();
+            if (!s1.next())
+               return false;
+         }
       }
    }
 

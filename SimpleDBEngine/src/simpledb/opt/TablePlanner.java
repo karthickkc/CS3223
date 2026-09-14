@@ -145,8 +145,12 @@ class TablePlanner {
    }
    
    private Plan makeProductJoin(Plan current, Schema currsch) {
-      Plan p = makeProductPlan(current);
-      return addJoinPred(p, currsch);
+      Predicate joinpred = mypred.joinSubPred(myschema, currsch);
+
+      if (joinpred == null)
+         return null;
+
+      return new ProductPlan(current, addSelectPred(myplan), joinpred);
    }
    
    private Plan addSelectPred(Plan p) {
