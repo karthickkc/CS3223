@@ -30,6 +30,9 @@ public class RecordComparator implements Comparator<Scan> {
     */
    public RecordComparator(List<String> fields) {
       this.fields = fields;
+      this.directions = new ArrayList<>();
+      for (int i = 0; i < fields.size(); i++)
+         this.directions.add(true);  // true = ASC
    }
    
    /**
